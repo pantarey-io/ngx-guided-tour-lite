@@ -1,6 +1,6 @@
 {
   "name": "@pantarey.io/ngx-guided-tour-lite",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A lightweight, dependency-free library for creating guided product tours for Angular",
   "author": "Pantarey GmbH <info@pantarey.io>",
   "license": "MIT",
