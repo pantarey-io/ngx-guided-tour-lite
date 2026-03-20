@@ -1,6 +1,6 @@
 {
   "name": "@pantarey.io/ngx-guided-tour-lite",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A lightweight, dependency-free library for creating guided product tours for Angular",
   "author": "Pantarey GmbH <info@pantarey.io>",
   "license": "MIT",
@@ -27,28 +27,15 @@
     "@angular/core": ">=19.0.0"
   },
   "sideEffects": false,
-  "module": "dist/index.mjs",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js",
-      "default": "./dist/index.mjs"
-    }
-  },
-  "files": [
-    "dist",
-    "README.md",
-    "LICENSE"
-  ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && node scripts/bundle.mjs",
+    "build": "ng-packagr -p ng-package.json",
     "prepublishOnly": "npm run build"
   },
   "devDependencies": {
-    "@angular/core": "^19.0.0",
-    "typescript": "~5.6.0"
+    "@angular/compiler": "^21.2.5",
+    "@angular/compiler-cli": "^21.2.5",
+    "@angular/core": "^21.2.5",
+    "ng-packagr": "^21.2.1",
+    "typescript": "~5.9.0"
   }
 }

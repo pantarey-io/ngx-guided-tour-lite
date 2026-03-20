@@ -1,6 +1,5 @@
 src/
-scripts/
+ng-package.json
 tsconfig.json
-tsconfig.build.json
 .gitignore
 .git/
