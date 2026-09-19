@@ -86,8 +86,8 @@ export interface GuidedTourConfig {
 const TOUR_STYLES = `
 .guided-tour-stage{position:fixed;z-index:var(--guided-tour-z-index,10000);box-sizing:border-box;pointer-events:none;transition:top .2s ease,left .2s ease,width .2s ease,height .2s ease}
 .guided-tour-active{position:relative!important;z-index:calc(var(--guided-tour-z-index,10000) + 1)!important}
-.guided-tour-popover{position:fixed;z-index:calc(var(--guided-tour-z-index,10000) + 2);max-width:var(--guided-tour-max-width,400px);border-radius:var(--guided-tour-radius,16px);padding:24px 24px 20px;font-family:var(--guided-tour-font,inherit);pointer-events:auto;opacity:0;transform:translateY(6px);transition:opacity .2s ease,transform .2s ease;background:var(--guided-tour-bg,radial-gradient(ellipse 500px 300px at 5% 0%,rgba(236,116,4,.06),transparent 60%),linear-gradient(160deg,#1c1c2e 0%,#131320 50%,#0e0e1a 100%));border:1px solid var(--guided-tour-border,rgba(255,255,255,.1));backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);box-shadow:0 20px 60px rgba(0,0,0,.45),0 4px 16px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.05);color:var(--guided-tour-text,#fff)}
-.guided-tour-popover--visible{opacity:1;transform:translateY(0)}
+.guided-tour-popover{position:fixed;z-index:calc(var(--guided-tour-z-index,10000) + 2);max-width:var(--guided-tour-max-width,400px);border-radius:var(--guided-tour-radius,16px);padding:24px 24px 20px;font-family:var(--guided-tour-font,inherit);pointer-events:none;opacity:0;transform:translateY(6px);transition:opacity .2s ease,transform .2s ease;background:var(--guided-tour-bg,radial-gradient(ellipse 500px 300px at 5% 0%,rgba(236,116,4,.06),transparent 60%),linear-gradient(160deg,#1c1c2e 0%,#131320 50%,#0e0e1a 100%));border:1px solid var(--guided-tour-border,rgba(255,255,255,.1));backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);box-shadow:0 20px 60px rgba(0,0,0,.45),0 4px 16px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.05);color:var(--guided-tour-text,#fff)}
+.guided-tour-popover--visible{pointer-events:auto;opacity:1;transform:translateY(0)}
 .guided-tour-popover__arrow{position:absolute;width:12px;height:12px;background:var(--guided-tour-arrow-bg,#131320);border:1px solid var(--guided-tour-border,rgba(255,255,255,.1));transform:rotate(45deg)}
 .guided-tour-popover__arrow--bottom{top:-7px;border-right:none;border-bottom:none}
 .guided-tour-popover__arrow--top{bottom:-7px;border-left:none;border-top:none}
@@ -217,6 +217,7 @@ export class GuidedTourService {
     this.cleanupStep();
     this.hideOverlay();
     this.hidePopover();
+    this.removeDOM();
     this.unbindGlobalEvents();
     this.cancelResume();
 
@@ -267,7 +268,11 @@ export class GuidedTourService {
     step = this.evaluateCondition(step);
 
     const action = step.action ?? 'info';
+    // Guard against the tour being destroyed (close, Escape, route change)
+    // while we await the element — otherwise a late step would re-highlight.
+    const tourConfig = this.config;
     const el = await this.waitForElement(step.selector, 5000);
+    if (this.config !== tourConfig) return;
     if (!el) {
       console.warn('[GuidedTour] Step element not found — skipping:', step.selector);
       if (index + 1 < this.steps.length) {
@@ -282,9 +287,11 @@ export class GuidedTourService {
 
     // Wait for element rect to stabilise (position + size, e.g. toolbar items loading)
     await this.waitForStableRect(el);
+    if (this.config !== tourConfig) return;
 
     // Wait one frame for scroll to settle, then highlight + overlay
     requestAnimationFrame(() => {
+      if (this.config !== tourConfig) return;
       this.highlightElement(el);
       this.showOverlay(
         el,
@@ -513,6 +520,20 @@ export class GuidedTourService {
       document.body.appendChild(el);
       this.popover = el;
     }
+  }
+
+  /**
+   * Remove stage + popover from the DOM. A hidden popover must not linger:
+   * it is `position:fixed` and would otherwise sit invisibly over the page
+   * at its last position and swallow clicks. `ensureDOM()` recreates both
+   * on the next `startTour()`.
+   */
+  private removeDOM(): void {
+    this.stage?.remove();
+    this.popover?.remove();
+    this.stage = null;
+    this.popover = null;
+    this.arrow = null;
   }
 
   // ────────────────────────────────────────────────────────────────
