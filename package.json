@@ -1,6 +1,6 @@
 {
   "name": "@pantarey.io/ngx-guided-tour-lite",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "A lightweight, dependency-free library for creating guided product tours for Angular",
   "author": "Pantarey GmbH <info@pantarey.io>",
   "license": "MIT",
@@ -29,7 +29,8 @@
   "sideEffects": false,
   "scripts": {
     "build": "ng-packagr -p ng-package.json",
-    "prepublishOnly": "npm run build"
+    "publish:lib": "npm run build && cd dist && npm publish",
+    "prepublishOnly": "node -e \"console.error('\nNicht aus dem Repo-Root publishen (Tarball waere falsch aufgebaut). Nutze: npm run publish:lib\n'); process.exit(1)\""
   },
   "devDependencies": {
     "@angular/compiler": "^21.2.5",

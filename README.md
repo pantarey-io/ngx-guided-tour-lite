@@ -166,3 +166,13 @@ Override CSS custom properties to match your brand:
 ## License
 
 MIT — [Pantarey GmbH](https://pantarey.io)
+
+## Publishing (maintainers)
+
+The package must be published from the `dist/` folder that ng-packagr generates, never from the repo root:
+
+```bash
+npm run publish:lib
+```
+
+`npm publish` in the repo root is blocked by `prepublishOnly` on purpose.
